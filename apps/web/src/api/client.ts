@@ -22,7 +22,9 @@ export interface MonitorMetricsData {
 }
 
 class ApiClient {
-  private baseUrl = "/api";
+  private baseUrl = import.meta.env.VITE_API_URL
+    ? `${import.meta.env.VITE_API_URL.replace(/\/$/, "")}/api`
+    : "/api";
 
   private getAuthHeader(): Record<string, string> {
     const token = localStorage.getItem("pingboard_token") || "mock-token";
@@ -49,16 +51,15 @@ class ApiClient {
     }
 
     const data = await res.json();
-
     if (!res.ok) {
-      const errorMessage = data?.error?.message || "An unexpected error occurred.";
-      throw new Error(errorMessage);
+      throw new Error(data.message || data.error?.message || "An unexpected API error occurred.");
     }
 
-    return data.data;
+    return data as T;
   }
 
-  // Monitors
+  // --- Monitors API ---
+
   async listMonitors(): Promise<Monitor[]> {
     return this.request<Monitor[]>("/monitors");
   }
@@ -87,7 +88,8 @@ class ApiClient {
     });
   }
 
-  // Metrics & Incidents
+  // --- Metrics & Incidents API ---
+
   async getMetrics(id: string, range: "24h" | "7d" | "30d" = "24h"): Promise<MonitorMetricsData> {
     return this.request<MonitorMetricsData>(`/monitors/${id}/metrics?range=${range}`);
   }
@@ -96,9 +98,10 @@ class ApiClient {
     return this.request<Incident[]>(`/monitors/${id}/incidents`);
   }
 
-  // Status Page Configuration
-  async getStatusPageSettings(): Promise<UserProfile | null> {
-    return this.request<UserProfile | null>("/status-page");
+  // --- Status Page Settings & Public Status ---
+
+  async getStatusPageSettings(): Promise<UserProfile> {
+    return this.request<UserProfile>("/status-page");
   }
 
   async updateStatusPageSettings(input: StatusPageConfigInput): Promise<UserProfile> {
@@ -108,7 +111,6 @@ class ApiClient {
     });
   }
 
-  // Public Status Page
   async getPublicStatus(slug: string): Promise<PublicStatusPageData> {
     return this.request<PublicStatusPageData>(`/public/status/${slug}`);
   }

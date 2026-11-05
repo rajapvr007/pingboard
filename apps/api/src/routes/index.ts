@@ -1,4 +1,5 @@
 import { Router } from "express";
+import authRoutes from "./authRoutes";
 import monitorRoutes from "./monitorRoutes";
 import statusPageRoutes from "./statusPageRoutes";
 import publicRoutes from "./publicRoutes";
@@ -11,6 +12,7 @@ router.get("/health", (_req, res) => {
 });
 
 // Mount module routers
+router.use("/auth", authRoutes);
 router.use("/monitors", monitorRoutes);
 router.use("/status-page", statusPageRoutes);
 router.use("/public", publicRoutes);

@@ -11,6 +11,7 @@ const EnvSchema = z.object({
   DYNAMODB_ENDPOINT: z.string().optional(),
   COGNITO_USER_POOL_ID: z.string().default("us-east-1_mockPoolId"),
   COGNITO_CLIENT_ID: z.string().default("mockClientId"),
+  COGNITO_CLIENT_SECRET: z.string().optional(),
   MOCK_AUTH: z
     .string()
     .optional()
