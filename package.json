@@ -1,0 +1,22 @@
+{
+  "name": "pingboard-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "apps/*",
+    "infra"
+  ],
+  "scripts": {
+    "build": "npm run --workspaces --if-present build",
+    "test": "npm run --workspaces --if-present test",
+    "dev:api": "npm --workspace=apps/api run dev",
+    "dev:web": "npm --workspace=apps/web run dev",
+    "build:api": "npm --workspace=apps/api run build",
+    "cdk:synth": "npm --workspace=infra run synth",
+    "cdk:deploy": "npm --workspace=infra run deploy"
+  },
+  "devDependencies": {
+    "typescript": "^5.4.5"
+  }
+}

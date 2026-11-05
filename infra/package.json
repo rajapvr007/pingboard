@@ -1,0 +1,24 @@
+{
+  "name": "@pingboard/infra",
+  "version": "1.0.0",
+  "private": true,
+  "bin": {
+    "infra": "bin/app.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "cdk": "cdk",
+    "synth": "cdk synth",
+    "diff": "cdk diff",
+    "deploy": "cdk deploy --all"
+  },
+  "dependencies": {
+    "aws-cdk-lib": "^2.140.0",
+    "constructs": "^10.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.12.12",
+    "aws-cdk": "^2.140.0",
+    "typescript": "^5.4.5"
+  }
+}
