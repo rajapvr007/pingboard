@@ -73,20 +73,49 @@ jobs:
           name: web-dist
           path: apps/web/dist
 
-      - name: Configure AWS Credentials (OIDC or Secret Keys)
+      - name: Validate AWS Credentials Configuration
+        env:
+          AWS_ROLE_TO_ASSUME: ${{ secrets.AWS_ROLE_TO_ASSUME }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          if [ -z "$AWS_ROLE_TO_ASSUME" ] && { [ -z "$AWS_ACCESS_KEY_ID" ] || [ -z "$AWS_SECRET_ACCESS_KEY" ]; }; then
+            echo "Configure AWS_ROLE_TO_ASSUME for GitHub OIDC, or configure both AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY repository secrets."
+            exit 1
+          fi
+
+      - name: Configure AWS Credentials with OIDC
+        if: ${{ secrets.AWS_ROLE_TO_ASSUME != '' }}
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
           aws-region: ${{ secrets.AWS_REGION || 'us-east-1' }}
 
+      - name: Configure AWS Credentials with Access Keys
+        if: ${{ secrets.AWS_ROLE_TO_ASSUME == '' && secrets.AWS_ACCESS_KEY_ID != '' && secrets.AWS_SECRET_ACCESS_KEY != '' }}
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION || 'us-east-1' }}
+
+      - name: Set AWS Account ID for CDK
+        shell: bash
+        env:
+          AWS_ACCOUNT_ID_SECRET: ${{ secrets.AWS_ACCOUNT_ID }}
+        run: |
+          if [ -n "$AWS_ACCOUNT_ID_SECRET" ]; then
+            echo "AWS_ACCOUNT_ID=$AWS_ACCOUNT_ID_SECRET" >> "$GITHUB_ENV"
+          else
+            echo "AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)" >> "$GITHUB_ENV"
+          fi
+
       - name: CDK Synthesize
         run: npx cdk synth --app "node infra/dist/bin/app.js"
         env:
-          AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
           AWS_REGION: ${{ secrets.AWS_REGION || 'us-east-1' }}
 
       - name: CDK Deploy All Stacks
         run: npx cdk deploy --all --require-approval never --app "node infra/dist/bin/app.js"
         env:
-          AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
           AWS_REGION: ${{ secrets.AWS_REGION || 'us-east-1' }}
