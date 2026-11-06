@@ -1,0 +1,30 @@
+version: "3.8"
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: pingboard-api
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - PORT=4000
+      - AWS_REGION=us-east-1
+      - DYNAMODB_TABLE_NAME=PingBoardTable
+      - MOCK_AUTH=false
+      - COGNITO_USER_POOL_ID=us-east-1_example
+      - COGNITO_CLIENT_ID=exampleClientId
+    expose:
+      - "4000"
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    container_name: pingboard-web
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - api
